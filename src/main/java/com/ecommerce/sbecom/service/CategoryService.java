@@ -3,10 +3,8 @@ package com.ecommerce.sbecom.service;
 import com.ecommerce.sbecom.dto.CategoryDto;
 import com.ecommerce.sbecom.dto.CategoryRequest;
 import com.ecommerce.sbecom.dto.CategoryResponse;
-import com.ecommerce.sbecom.entiry.Category;
 import jakarta.validation.Valid;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface CategoryService {

@@ -2,7 +2,7 @@ package com.ecommerce.sbecom.service;
 
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
-import com.ecommerce.sbecom.entiry.Product;
+import com.ecommerce.sbecom.model.Product;
 
 import java.util.List;
 import java.util.UUID;

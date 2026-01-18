@@ -1,4 +1,4 @@
-package com.ecommerce.sbecom.entiry;
+package com.ecommerce.sbecom.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Column;
@@ -24,7 +24,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @NoArgsConstructor
 @Builder
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Category extends BaseEntity {
+public class Category extends BaseModel {
         @Column(unique = true)
         private String categoryName;
         @OneToMany(mappedBy = "category")

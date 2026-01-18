@@ -1,9 +1,11 @@
-package com.ecommerce.sbecom.entiry;
+package com.ecommerce.sbecom.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -11,11 +13,11 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
-//@Table(name = "product",indexes = {
-//        @Index()
-//}
-//)
-public class Product extends BaseEntity {
+@Table(name = "products")
+public class Product extends BaseModel {
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CartItem> cartItems=new ArrayList<>();
 
     private String productName;
     private String description;

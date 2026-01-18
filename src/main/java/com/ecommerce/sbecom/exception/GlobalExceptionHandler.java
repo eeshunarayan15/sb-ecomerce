@@ -18,6 +18,33 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ProductAlreadyInCartException.class)
+    public ResponseEntity<ApiResponse<?>> handleProductAlreadyInCartException(
+            ProductAlreadyInCartException ex) {
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .data(null)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+    public ResponseEntity<String> apiException(APIException e) {
+        System.out.println("API Exception caught: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        // You can log the exception here if needed
+    }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> myResourceNotFoundException(ResourceNotFoundException e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("message", e.getMessage());
+        response.put("status", HttpStatus.NOT_FOUND.value());
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
 

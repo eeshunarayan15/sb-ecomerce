@@ -5,16 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class ProductDto {
-    private String productId;
-    private String productName;
-    private String description;
+public class CartDto {
+    private UUID cartId;
+    private Double totalPrice=0.0;
     private Integer quantity;
     private Double price;
-    private double specialPrice;
-    private CategoryDto categoryDto;
+    List<ProductDto> productDtoList = new ArrayList<>();
 }

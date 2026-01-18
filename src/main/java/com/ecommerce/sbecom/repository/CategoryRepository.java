@@ -1,6 +1,6 @@
 package com.ecommerce.sbecom.repository;
 
-import com.ecommerce.sbecom.entiry.Category;
+import com.ecommerce.sbecom.model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

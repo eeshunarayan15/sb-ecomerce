@@ -3,12 +3,13 @@ package com.ecommerce.sbecom.service;
 import com.ecommerce.sbecom.dto.CategoryDto;
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
-import com.ecommerce.sbecom.entiry.Category;
-import com.ecommerce.sbecom.entiry.Product;
+import com.ecommerce.sbecom.model.Category;
+import com.ecommerce.sbecom.model.Product;
 import com.ecommerce.sbecom.repository.CategoryRepository;
 import com.ecommerce.sbecom.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-
+@Transactional
     @Override
     public List<ProductDto> getAllProducts() {
         List<Product> all = productRepository.findAll();

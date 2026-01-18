@@ -3,7 +3,7 @@ package com.ecommerce.sbecom.service;
 import com.ecommerce.sbecom.dto.CategoryDto;
 import com.ecommerce.sbecom.dto.CategoryRequest;
 import com.ecommerce.sbecom.dto.CategoryResponse;
-import com.ecommerce.sbecom.entiry.Category;
+import com.ecommerce.sbecom.model.Category;
 import com.ecommerce.sbecom.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

@@ -4,7 +4,7 @@ import com.ecommerce.sbecom.dto.ApiResponse;
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
 import com.ecommerce.sbecom.dto.ProductResponse;
-import com.ecommerce.sbecom.entiry.Product;
+import com.ecommerce.sbecom.model.Product;
 import com.ecommerce.sbecom.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
