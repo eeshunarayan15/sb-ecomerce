@@ -17,4 +17,6 @@ public interface ProductService {
     List<ProductDto> getAllProductByCategoryId(UUID categoryId);
 
     List<ProductDto> getProductByKeyWord(String keyword);
+
+    ProductDto updateProduct(UUID productId, ProductRequest productRequest);
 }

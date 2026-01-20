@@ -16,7 +16,8 @@ public class Cart extends BaseModel{
     @OneToOne
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
-    @OneToMany(mappedBy = "cart")
+
+    @OneToMany(mappedBy = "cart",cascade = CascadeType.ALL,orphanRemoval = true)
     @Builder.Default
     private List<CartItem> cartItemList=new ArrayList<>();
 

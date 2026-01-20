@@ -97,7 +97,12 @@ public class JwtsAuthenticationFilter extends OncePerRequestFilter {
             log.debug("Extracted user ID from token: {}", userId);
 
             // Load user from database
-            User user = userRepository.findById(userId)
+//            User user = userRepository.findById(userId)
+//                    .orElseThrow(() -> {
+//                        log.error("User not found with ID: {}", userId);
+//                        return new UsernameNotFoundException("User not found with ID: " + userId);
+//                    });
+            User user = userRepository.findByIdWithRoles(userId)
                     .orElseThrow(() -> {
                         log.error("User not found with ID: {}", userId);
                         return new UsernameNotFoundException("User not found with ID: " + userId);

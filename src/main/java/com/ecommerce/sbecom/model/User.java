@@ -1,5 +1,6 @@
 package com.ecommerce.sbecom.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -90,6 +91,7 @@ public class User extends BaseModel implements UserDetails {
     private List<RefreshToken> refreshTokens=new ArrayList<>();
 
     @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Cart cart;
 
     @Override

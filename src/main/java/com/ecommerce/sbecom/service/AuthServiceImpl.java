@@ -88,10 +88,11 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
 
         try {
+            long start = System.currentTimeMillis();
             // 1. Spring Security khud user fetch karegi aur password verify karegi
             Authentication authenticate = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-
+            log.info("Authentication took: {}ms", System.currentTimeMillis() - start);
             // 2. REDUNDANT CALL HATAYEIN: Dobara findByEmail karne ki zarurat nahi hai
             // Authentication se hi user object nikaalein
             User user = (User) authenticate.getPrincipal();
@@ -123,8 +124,9 @@ public class AuthServiceImpl implements AuthService {
                     .expiredAt(now.plusMinutes(30))
                     .revoked(false)
                     .build();
+            start = System.currentTimeMillis();
             RefreshToken savedToken = refreshTokenRepository.save(refreshTokenEntity);
-
+            log.info("Save refresh token took: {}ms", System.currentTimeMillis() - start);
             String accessToken = jwtService.generateToken(user);
             String refreshTokenString = jwtService.generateRefreshToken(user, refreshTokenEntity.getJti());
             // use cookie service to attach refresh token in cookie

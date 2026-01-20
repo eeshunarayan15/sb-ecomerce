@@ -5,11 +5,15 @@ import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
 import com.ecommerce.sbecom.dto.ProductResponse;
 import com.ecommerce.sbecom.model.Product;
+import com.ecommerce.sbecom.model.User;
+import com.ecommerce.sbecom.service.AuthService;
 import com.ecommerce.sbecom.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -114,5 +118,14 @@ public class ProductController {
                 .timestamp(LocalDateTime.now().toString()).message("Product Found SucessFully")
                 .data(res)
                 .build());
+    }
+    @PutMapping("/admin/products/{productId}")
+    public void updateProduct(
+          @PathVariable  UUID productId,
+          @RequestBody  ProductRequest productRequest,
+          Authentication authentication
+    ){
+
+        productService.updateProduct(productId,productRequest);
     }
 }

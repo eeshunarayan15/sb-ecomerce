@@ -1,8 +1,8 @@
 package com.ecommerce.sbecom.service;
 
 import com.ecommerce.sbecom.dto.CartDto;
+import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.exception.APIException;
-import com.ecommerce.sbecom.exception.ProductAlreadyInCartException;
 import com.ecommerce.sbecom.exception.ResourceNotFoundException;
 import com.ecommerce.sbecom.model.Cart;
 import com.ecommerce.sbecom.model.CartItem;
@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -32,10 +33,10 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartDto addProductToCart(UUID productId, Integer quantity, Authentication authentication) {
-       //finding the existing cart or creating the new cart for user
+        //finding the existing cart or creating the new cart for user
         Cart cart = getOrCreateCart(authentication.getName());
 
-            //finding the product if doesn't eixts then throw error
+        //finding the product if doesn't eixts then throw error
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Not Found With id : " + productId));
         // 2. Check karo product pehle se cart mein hai ya nahi
@@ -61,8 +62,149 @@ public class CartServiceImpl implements CartService {
         Double currentTotal = (cart.getTotalPrice() != null) ? cart.getTotalPrice() : 0.0;
         cart.setTotalPrice(currentTotal + (product.getPrice() * quantity));
         cartRepository.save(cart);
+        List<ProductDto> list = cart.getCartItemList().stream()
+                .map(item -> ProductDto.builder()
+                        .productId(item.getProduct().getId().toString())
+                        .productName(item.getProduct().getProductName())
+                        .price(item.getProduct().getPrice())
+                        .specialPrice(item.getProduct().getSpecialPrice())
+                        .quantity(item.getQuantity())
+                        .build()).toList();
+        return CartDto.builder()
+                .cartId(cart.getId()).
+                totalPrice(cart.getTotalPrice())
+                .quantity(cart.getTotalItems())
 
-        return CartDto.builder().cartId(cart.getId()).totalPrice(cart.getTotalPrice()).build();
+                .productDtoList(list)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CartDto> getAllCarts() {
+
+        List<Cart> all = cartRepository.findAll();
+        return all.stream().map(cart -> CartDto.builder().cartId(cart.getId())
+                .price(cart.getTotalPrice())
+                .quantity(cart.getTotalItems())
+
+                .productDtoList(cart.getCartItemList().stream().map(item -> ProductDto.builder()
+                                .productId(item.getProduct().getId().toString())
+                                .productName(item.getProduct().getProductName())
+                                .price(item.getProduct().getPrice())
+                                .specialPrice(item.getProduct().getSpecialPrice())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
+                .build()).toList();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public CartDto getCart(UUID id, String email) {
+        Cart cart = cartRepository.findByUserId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+        return CartDto.builder()
+                .cartId(cart.getId())
+                .price(cart.getTotalPrice())
+                .quantity(cart.getTotalItems())
+                .productDtoList(cart.getCartItemList().stream().map(item -> ProductDto.builder()
+                                .productId(item.getProduct().getId().toString())
+                                .productName(item.getProduct().getProductName())
+                                .price(item.getProduct().getPrice())
+                                .specialPrice(item.getProduct().getSpecialPrice())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
+
+                .build();
+
+    }
+
+    @Transactional
+    @Override
+    public CartDto updateProudctQuantityInCart(UUID userId, UUID productId, String action) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user :" + userId));
+        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cart.getId(), productId);
+        Integer currentQty = cartItem.getQuantity();
+        Integer newQty;
+        // 3️⃣ Decide new quantity
+        if ("INCREASE".equalsIgnoreCase(action)) {
+            newQty = currentQty + 1;
+        } else if ("DECREASE".equalsIgnoreCase(action)) {
+            newQty = currentQty - 1;
+        } else {
+            throw new APIException("Invalid action");
+        }
+        // 4️⃣ Stock validation
+        if (newQty > cartItem.getProduct().getQuantity()) {
+            throw new APIException("Insufficient stock");
+        }
+        // 5️⃣ If quantity = 0 → remove item
+        if (newQty == 0) {
+            cartItemRepository.delete(cartItem);
+        } else {
+            cartItem.setQuantity(newQty);
+            cartItem.setSellingPrice(cartItem.getProduct().getPrice() * newQty);
+            cartItemRepository.save(cartItem);
+        }
+        double total = cart.getCartItemList().stream().mapToDouble(CartItem::getSellingPrice).sum();
+        cart.setTotalPrice(total);
+        Cart updatedCart = cartRepository.save(cart);
+        return CartDto.builder()
+                .cartId(updatedCart.getId())
+                .quantity(updatedCart.getTotalItems())
+                .price(updatedCart.getTotalPrice())
+                .productDtoList(updatedCart.getCartItemList().stream().map(item -> ProductDto.builder()
+                                .productId(item.getProduct().getId().toString())
+                                .productName(item.getProduct().getProductName())
+                                .price(item.getProduct().getPrice())
+                                .specialPrice(item.getProduct().getSpecialPrice())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public CartDto deleteProductFromCart(UUID userId, UUID productId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user :" + userId));
+
+        CartItem cartItem = cartItemRepository
+                .findOptionalByCartIdAndProductId(cart.getId(), productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found in cart")
+                );
+
+        // 🔥 orphanRemoval does the delete
+        cart.getCartItemList().remove(cartItem);
+
+        double total = cart.getCartItemList().stream()
+                .mapToDouble(CartItem::getSellingPrice)
+                .sum();
+
+        cart.setTotalPrice(total);
+        cart.setTotalItems(cart.getCartItemList().size());
+        cartRepository.save(cart);
+
+        return CartDto.builder()
+                .cartId(cart.getId())
+                .price(cart.getTotalPrice())
+                .quantity(cart.getTotalItems())
+                .productDtoList(cart.getCartItemList().stream()
+                        .map(item -> ProductDto.builder()
+                                .productId(item.getProduct().getId().toString())
+                                .productName(item.getProduct().getProductName())
+                                .price(item.getProduct().getPrice())
+                                .specialPrice(item.getProduct().getSpecialPrice())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
+                .build();
+
     }
 
 
@@ -86,6 +228,7 @@ public class CartServiceImpl implements CartService {
         }
 
         // 4. Return found cart
+
         return cart;
     }
 

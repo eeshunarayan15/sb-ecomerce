@@ -3,12 +3,18 @@ package com.ecommerce.sbecom.repository;
 import com.ecommerce.sbecom.model.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
+
+    @EntityGraph(attributePaths = {"roles"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findByIdWithRoles(@Param("id") UUID id);
     // UserRepository.java
     @EntityGraph(attributePaths = {"roles"}) // Sirf roles ko fetch karega
     Optional<User> findByEmail(String email);

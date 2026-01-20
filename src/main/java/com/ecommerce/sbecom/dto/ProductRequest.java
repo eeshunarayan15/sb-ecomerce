@@ -28,7 +28,7 @@
         private Double price;
 
         @PositiveOrZero(message = "Special price cannot be negative")
-        private double specialPrice;
+        private Double specialPrice;
 
 
     }

@@ -3,6 +3,8 @@ package com.ecommerce.sbecom.service;
 import com.ecommerce.sbecom.dto.CategoryDto;
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
+import com.ecommerce.sbecom.exception.APIException;
+import com.ecommerce.sbecom.exception.ResourceNotFoundException;
 import com.ecommerce.sbecom.model.Category;
 import com.ecommerce.sbecom.model.Product;
 import com.ecommerce.sbecom.repository.CategoryRepository;
@@ -19,7 +21,8 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-@Transactional
+
+    @Transactional
     @Override
     public List<ProductDto> getAllProducts() {
         List<Product> all = productRepository.findAll();
@@ -106,5 +109,56 @@ public class ProductServiceImpl implements ProductService {
                                 .categoryName(product.getCategory().getCategoryName())
                                 .build())
                         .build()).toList();
+    }
+
+    @Transactional
+    @Override
+    public ProductDto updateProduct(UUID productId, ProductRequest productRequest) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not found with id : "
+                        + productId));
+
+        if (productRequest.getPrice() != null &&
+                productRequest.getSpecialPrice() != null &&
+                productRequest.getSpecialPrice() > productRequest.getPrice()) {
+            throw new APIException("Special price cannot be greater than price");
+        }
+
+        if (productRequest.getQuantity() != null && productRequest.getQuantity() < 0) {
+            throw new APIException("Quantity cannot be negative");
+        }
+        if (productRequest.getProductName() != null) {
+            product.setProductName(productRequest.getProductName());
+        }
+
+        if (productRequest.getDescription() != null) {
+            product.setDescription(productRequest.getDescription());
+        }
+
+        if (productRequest.getPrice() != null) {
+            product.setPrice(productRequest.getPrice());
+        }
+
+        if (productRequest.getSpecialPrice() != null) {
+            product.setSpecialPrice(productRequest.getSpecialPrice());
+        }
+
+        if (productRequest.getQuantity() != null) {
+            product.setQuantity(productRequest.getQuantity());
+        }
+        Product updatedProduct = productRepository.save(product);
+        return ProductDto.builder()
+                .productId(updatedProduct.getId().toString())
+                .productName(updatedProduct.getProductName())
+                .description(updatedProduct.getDescription())
+                .price(updatedProduct.getPrice())
+                .specialPrice(updatedProduct.getSpecialPrice())
+                .quantity(updatedProduct.getQuantity())
+                .categoryDto(CategoryDto.builder()
+                        .id(updatedProduct.getCategory().getId())
+                        .categoryName(updatedProduct.getCategory().getCategoryName())
+                        .build())
+                .build();
+
     }
 }
