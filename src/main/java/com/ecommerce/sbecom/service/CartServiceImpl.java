@@ -1,5 +1,6 @@
 package com.ecommerce.sbecom.service;
 
+import com.ecommerce.sbecom.config.PricingService;
 import com.ecommerce.sbecom.dto.CartDto;
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.exception.APIException;
@@ -29,6 +30,7 @@ public class CartServiceImpl implements CartService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
+    private final PricingService pricingService;
 
     @Override
     @Transactional
@@ -104,19 +106,25 @@ public class CartServiceImpl implements CartService {
     public CartDto getCart(UUID id, String email) {
         Cart cart = cartRepository.findByUserId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+
+
+        List<ProductDto> list = cart.getCartItemList().stream().map(item -> {
+            Double livePrice = pricingService.calculateLivePrice(item.getProduct());
+            return ProductDto.builder()
+                    .productId(item.getProduct().getId().toString())
+                    .productName(item.getProduct().getProductName())
+                    .price(item.getSellingPrice()) // Purani price (snapshot)
+                    .price(livePrice)
+                    .price(livePrice)        // Nayi price (live)
+                    .quantity(item.getQuantity())
+                    .build();
+        }).toList();
+
         return CartDto.builder()
                 .cartId(cart.getId())
                 .price(cart.getTotalPrice())
                 .quantity(cart.getTotalItems())
-                .productDtoList(cart.getCartItemList().stream().map(item -> ProductDto.builder()
-                                .productId(item.getProduct().getId().toString())
-                                .productName(item.getProduct().getProductName())
-                                .price(item.getProduct().getPrice())
-                                .specialPrice(item.getProduct().getSpecialPrice())
-                                .quantity(item.getQuantity())
-                                .build())
-                        .toList())
-
+                .productDtoList(list)
                 .build();
 
     }
