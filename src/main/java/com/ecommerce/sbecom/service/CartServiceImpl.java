@@ -87,7 +87,7 @@ public class CartServiceImpl implements CartService {
 
         List<Cart> all = cartRepository.findAll();
         return all.stream().map(cart -> CartDto.builder().cartId(cart.getId())
-                .price(cart.getTotalPrice())
+                .totalPrice(cart.getTotalPrice())
                 .quantity(cart.getTotalItems())
 
                 .productDtoList(cart.getCartItemList().stream().map(item -> ProductDto.builder()
@@ -110,20 +110,28 @@ public class CartServiceImpl implements CartService {
 
         List<ProductDto> list = cart.getCartItemList().stream().map(item -> {
             Double livePrice = pricingService.calculateLivePrice(item.getProduct());
+
+
             return ProductDto.builder()
                     .productId(item.getProduct().getId().toString())
                     .productName(item.getProduct().getProductName())
-                    .price(item.getSellingPrice()) // Purani price (snapshot)
-                    .price(livePrice)
                     .price(livePrice)        // Nayi price (live)
                     .quantity(item.getQuantity())
                     .build();
         }).toList();
+        // ✅ Calculate dynamic total AFTER mapping (separate stream)
+        double dynamicTotal = cart.getCartItemList().stream()
+                .mapToDouble(item -> {
+                    Double livePrice = pricingService.calculateLivePrice(item.getProduct());
+                    return livePrice * item.getQuantity();
+                })
+                .sum();
+
 
         return CartDto.builder()
                 .cartId(cart.getId())
-                .price(cart.getTotalPrice())
-                .quantity(cart.getTotalItems())
+                .totalPrice(dynamicTotal)
+                .quantity(cart.getCartItemList().stream().mapToInt(CartItem::getQuantity).sum())
                 .productDtoList(list)
                 .build();
 
@@ -163,7 +171,7 @@ public class CartServiceImpl implements CartService {
         return CartDto.builder()
                 .cartId(updatedCart.getId())
                 .quantity(updatedCart.getTotalItems())
-                .price(updatedCart.getTotalPrice())
+                .totalPrice(updatedCart.getTotalPrice())
                 .productDtoList(updatedCart.getCartItemList().stream().map(item -> ProductDto.builder()
                                 .productId(item.getProduct().getId().toString())
                                 .productName(item.getProduct().getProductName())
@@ -200,7 +208,7 @@ public class CartServiceImpl implements CartService {
 
         return CartDto.builder()
                 .cartId(cart.getId())
-                .price(cart.getTotalPrice())
+                .totalPrice(cart.getTotalPrice())
                 .quantity(cart.getTotalItems())
                 .productDtoList(cart.getCartItemList().stream()
                         .map(item -> ProductDto.builder()

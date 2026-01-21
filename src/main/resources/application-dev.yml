@@ -2,29 +2,25 @@ spring:
   application:
     name: auth
 
-
+  datasource:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    jpa:
-      properties:
-        hibernate:
-          generate_statistics: true
-          format_sql: true  # This makes SQL queries more readable
-      show-sql: true  # Optional: shows SQL in console
 
   jpa:
+    open-in-view: false
+    show-sql: true
     hibernate:
       ddl-auto: update
-    show-sql: true
-    open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        highlight_sql: true  # Isse SQL console mein colorful dikhega
+        highlight_sql: true
+        generate_statistics: true
+
   security:
     oauth2:
       client:
@@ -32,57 +28,39 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: ${SCOPE:email,profile,openid}
+            scope: email,profile,openid
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope: read:user,user:email
             redirect-uri: http://localhost:8089/login/oauth2/code/github
+
 server:
   port: 8089
+
 security:
   jwt:
     secret-key: ${JWT_SECRET}
-    expiration: ${JWT_EXPIRATION:3600}
     issuer: ${JWT_ISSUER:issuer}
-    refresh-ttl-seconds: ${JWT_REFRESH_TTL_SECONDS:604800}
+
     access-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:900}
-    refresh-token: ${JWT_REFRESH_TOKEN:refresh-token}
-    access-token: ${JWT_ACCESS_TOKEN:access-token}
-    token-prefix: ${JWT_TOKEN_PREFIX:Bearer }
-    refresh-token-cookie-name: ${JWT_REFRESH_TOKEN_COOKIE_NAME:refresh-token}
+    refresh-ttl-seconds: ${JWT_REFRESH_TTL_SECONDS:604800}
+
     access-token-cookie-name: ${JWT_ACCESS_TOKEN_COOKIE_NAME:access-token}
+    refresh-token-cookie-name: ${JWT_REFRESH_TOKEN_COOKIE_NAME:refresh-token}
+
     cookie-secure: ${JWT_COOKIE_SECURE:false}
     cookie-http-only: ${JWT_COOKIE_HTTP_ONLY:true}
-    cookie-domain: ${JWT_COOKIE_DOMAIN:}
     cookie-path: ${JWT_COOKIE_PATH:/}
-    cookie-max-age: ${JWT_COOKIE_MAX_AGE:3600}
+    cookie-domain: ${JWT_COOKIE_DOMAIN:}
     cookie-same-site: ${JWT_COOKIE_SAME_SITE:Lax}
-    cookie-attribute-name: ${JWT_COOKIE_ATTRIBUTE_NAME:jwt}
-    cookie-attribute-value: ${JWT_COOKIE_ATTRIBUTE_VALUE:jwt}
-    cookie-attribute-path: ${JWT_COOKIE_ATTRIBUTE_PATH:/}
-    cookie-attribute-domain: ${JWT_COOKIE_ATTRIBUTE_DOMAIN:}
-    cookie-attribute-max-age: ${JWT_COOKIE_ATTRIBUTE_MAX_AGE:3600}
-    cookie-attribute-secure: ${JWT_COOKIE_ATTRIBUTE_SECURE:false}
-    cookie-attribute-http-only: ${JWT_COOKIE_ATTRIBUTE_HTTP_ONLY:true}
-    cookie-attribute-same-site: ${JWT_COOKIE_ATTRIBUTE_SAME_SITE:Lax}
-    cookie-attribute-comment: ${JWT_COOKIE_ATTRIBUTE_COMMENT:jwt}
-    cookie-attribute-version: ${JWT_COOKIE_ATTRIBUTE_VERSION:1}
-    cookie-attribute-comment-url: ${JWT_COOKIE_ATTRIBUTE_COMMENT_URL:jwt}
-    cookie-attribute-disclosure: ${JWT_COOKIE_ATTRIBUTE_DISCLOSURE:jwt}
-
-
+    cookie-max-age: ${JWT_COOKIE_MAX_AGE:3600}
 
 app:
   cors:
     front-end:
       url: ${FRONTEND_URL:http://localhost:5173}
 
-
-
-
-
-# Hibernate SQL logging
 logging:
   level:
     org:
@@ -96,4 +74,3 @@ logging:
           internal:
             StatisticalLoggingSessionEventListener: DEBUG
         stat: DEBUG
-

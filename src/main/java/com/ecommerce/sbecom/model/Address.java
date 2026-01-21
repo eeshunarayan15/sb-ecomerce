@@ -1,7 +1,8 @@
 package com.ecommerce.sbecom.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
 
 
@@ -20,4 +21,9 @@ public class Address extends BaseModel {
     private String state;
     private String country;
     private String postalCode;
+//    / Add this: many addresses can belong to one user
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonBackReference // Prevents infinite recursion in JSON serialization
+    private User user;
 }

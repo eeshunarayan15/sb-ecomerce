@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class AddressDto {
-
+         private UUID id;
     @NotBlank(message = "Address line 1 is required")
     @Size(max = 255, message = "Address line 1 must not exceed 255 characters")
     private String addressLine1;

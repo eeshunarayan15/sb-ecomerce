@@ -17,6 +17,6 @@ public class CartDto {
     private UUID cartId;
     private Double totalPrice=0.0;
     private Integer quantity;
-    private Double price;
+
     List<ProductDto> productDtoList = new ArrayList<>();
 }

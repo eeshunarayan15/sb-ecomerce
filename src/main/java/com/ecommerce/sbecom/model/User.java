@@ -47,18 +47,15 @@ public class User extends BaseModel implements UserDetails {
 
     //    @Size(max = 50)
     private String lastName;
+    private String phone;
 
     //    @Pattern(regexp = "^[0-9]{10,15}$", message = "Invalid phone number")
-    private String phone;
-    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private Address address;
+// Remove the old @OneToOne with address and replace with:
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @Builder.Default
+    private List<Address> addresses = new ArrayList<>();
 
-    private String city;
-    private String state;
-    private String country;
-    private String countryCode;
-    private String countryName;
     private String imageUrl;
 
     @Column(nullable = false)
