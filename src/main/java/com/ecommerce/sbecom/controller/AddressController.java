@@ -18,17 +18,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/addresses")
 @RequiredArgsConstructor
-public class AdressController {
+public class AddressController {
     private final AddressService addressService;
 
-  @PostMapping
-    public ResponseEntity<ApiResponse<Object>> createAddress(
-            @RequestBody AddressDto addressDto,
-            Authentication authentication,
-            HttpServletRequest request) {
-//        String name = authentication.getName();
-//        System.out.println(name);
-//        System.out.println(authentication);
+    @PostMapping
+    public ResponseEntity<ApiResponse<Object>> createAddress(@RequestBody AddressDto addressDto, Authentication authentication, HttpServletRequest request) {
+
         User user = (User) authentication.getPrincipal(); // ✅ cast
         assert user != null;
         UUID userId = user.getId();                        // ✅ USER ID
@@ -36,17 +31,11 @@ public class AdressController {
         System.out.println(userId);
 
         AddressDto address = addressService.createAddress(userId, addressDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder()
-                .data(address)
-                .success(true)
-                .message("Address created successfully")
-                .timestamp(LocalDateTime.now().toString())
-                .build());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder().data(address).success(true).message("Address created successfully").timestamp(LocalDateTime.now().toString()).build());
     }
-@GetMapping
-    public ResponseEntity<ApiResponse<Object>> getAllAddress(
-            Authentication authentication
-) {
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Object>> getAllAddress(Authentication authentication) {
 
         User user = (User) authentication.getPrincipal(); // ✅ cast
         assert user != null;
@@ -54,12 +43,40 @@ public class AdressController {
 
         System.out.println(userId);
 
-    List<AddressDto> allAddress = addressService.getAllAddress(userId);
+        List<AddressDto> allAddress = addressService.getAllAddress(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.builder().data(allAddress).success(true).message("Address found successfully").timestamp(LocalDateTime.now().toString()).build());
+    }
+
+
+@GetMapping("/{addressId}")
+public ResponseEntity<ApiResponse<Object>> getAddressById(@PathVariable UUID addressId, Authentication authentication) {
+
+    AddressDto addressDto = addressService.getAddressById(addressId);
+
     return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.builder()
-                .data(allAddress)
-                .success(true)
-                .message("Address found successfully")
-                .timestamp(LocalDateTime.now().toString())
-                .build());
+            .data(addressDto)
+            .success(true)
+            .message("Address found successfully")
+            .timestamp(LocalDateTime.now().toString())
+            .build());
+
+}
+
+
+  @DeleteMapping("/{addressId}")
+    public ResponseEntity<Object> deleteAddressByUserIdAndAddressId(
+            @PathVariable UUID addressId,
+            Authentication authentication
+    ) {
+      User user = (User) authentication.getPrincipal(); // ✅ cast
+      assert user != null;
+      UUID userId = user.getId();                        // ✅ USER ID
+
+
+      addressService.deleteAddressByUserIdAndAddressId(userId,addressId);
+
+      return ResponseEntity.noContent().build();  // HTTP 204
+
+
     }
 }

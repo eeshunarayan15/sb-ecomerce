@@ -4,12 +4,11 @@ package com.ecommerce.sbecom.dto;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LoginResponse {
     
     LocalDateTime expiresIn;

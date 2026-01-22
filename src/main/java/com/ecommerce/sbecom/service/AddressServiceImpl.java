@@ -57,6 +57,30 @@ public class AddressServiceImpl implements AddressService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public AddressDto getAddressById(UUID addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        return AddressDto.builder()
+                .addressLine1(address.getAddressLine1())
+                .addressLine2(address.getAddressLine2())
+                .country(address.getCountry())
+                .state(address.getState())
+                .city(address.getCity())
+                .id(address.getId())
+                .postalCode(address.getPostalCode())
+                .build();
+    }
+
+    @Override
+    public void deleteAddressByUserIdAndAddressId(UUID userId, UUID addressId) {
+        int deletedCount = addressRepository.deleteByIdAndUserId(addressId, userId);
+        if (deletedCount == 0) {
+            throw new ResourceNotFoundException("Address not found or doesn't belong to user");
+        }
+    }
+
     private AddressDto convertToDto(Address address) {
         return AddressDto.builder()
                 .id(address.getId())

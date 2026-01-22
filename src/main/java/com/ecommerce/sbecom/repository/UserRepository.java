@@ -15,9 +15,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = {"roles"})
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdWithRoles(@Param("id") UUID id);
-    // UserRepository.java
-    @EntityGraph(attributePaths = {"roles"}) // Sirf roles ko fetch karega
-    Optional<User> findByEmail(String email);
+    // Use explicit JOIN FETCH to load only roles, preventing cart from being loaded
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE u.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
 //    Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);

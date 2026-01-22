@@ -1,15 +1,15 @@
     package com.ecommerce.sbecom.dto;
 
     import jakarta.validation.constraints.*;
-    import lombok.AllArgsConstructor;
-    import lombok.Data;
-    import lombok.NoArgsConstructor;
+    import lombok.*;
 
     import java.util.UUID;
 
-    @Data
-    @AllArgsConstructor
+    @Getter
+    @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public class ProductRequest {
         @NotBlank(message = "Product name is required")
         @Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")

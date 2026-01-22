@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Getter
 @Setter
@@ -26,4 +29,6 @@ public class Address extends BaseModel {
     @JoinColumn(name = "user_id")
     @JsonBackReference // Prevents infinite recursion in JSON serialization
     private User user;
+    @OneToMany(mappedBy = "address")
+    private List<Order>  orderList = new ArrayList<>()  ;
 }

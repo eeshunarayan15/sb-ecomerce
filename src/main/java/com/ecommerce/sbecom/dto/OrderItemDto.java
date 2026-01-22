@@ -9,13 +9,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartItemDto {
-    private UUID cartId;
-    private UUID cartItemId;
-    private CartDto cartDto;
+public class OrderItemDto {
+    private UUID orderItemId;
     private ProductDto productDto;
-    private Integer discount;
     private Integer quantity;
+    private double discount;
+    private double orderedProductPrice;
 
-    private Double productPrice = 0.0;
 }

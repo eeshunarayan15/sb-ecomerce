@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @Table(name = "Carts")
 public class Cart extends BaseModel{
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
 

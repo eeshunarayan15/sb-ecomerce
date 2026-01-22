@@ -2,17 +2,14 @@ package com.ecommerce.sbecom.dto;
 
 
 import com.ecommerce.sbecom.model.Provider;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserDto {
     private String id;

@@ -87,9 +87,9 @@ public class User extends BaseModel implements UserDetails {
     @JsonManagedReference // Jackson ko pata chalega ki ye parent side hai
     private List<RefreshToken> refreshTokens=new ArrayList<>();
 
-    @OneToOne(mappedBy = "user")
-    @JsonIgnore
-    private Cart cart;
+//    @OneToOne(mappedBy = "user")
+//    @JsonIgnore
+//    private Cart cart;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

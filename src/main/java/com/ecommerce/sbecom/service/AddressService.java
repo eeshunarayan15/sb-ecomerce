@@ -9,4 +9,8 @@ public interface AddressService {
     AddressDto createAddress(UUID userId, AddressDto addressDto);
 
     List<AddressDto> getAllAddress(UUID userId);
+
+    AddressDto getAddressById(UUID addressId);
+
+    void deleteAddressByUserIdAndAddressId(UUID userId, UUID addressId);
 }
