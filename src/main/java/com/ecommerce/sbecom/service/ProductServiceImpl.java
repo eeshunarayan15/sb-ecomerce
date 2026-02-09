@@ -3,6 +3,7 @@ package com.ecommerce.sbecom.service;
 import com.ecommerce.sbecom.dto.CategoryDto;
 import com.ecommerce.sbecom.dto.ProductDto;
 import com.ecommerce.sbecom.dto.ProductRequest;
+import com.ecommerce.sbecom.dto.ProductResponse;
 import com.ecommerce.sbecom.exception.APIException;
 import com.ecommerce.sbecom.exception.ResourceNotFoundException;
 import com.ecommerce.sbecom.model.Category;
@@ -10,10 +11,16 @@ import com.ecommerce.sbecom.model.Product;
 import com.ecommerce.sbecom.repository.CategoryRepository;
 import com.ecommerce.sbecom.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -21,12 +28,45 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "productName",
+            "price",
+            "specialPrice",
+            "quantity",
+            "createdAt"
+    );
 
     @Transactional
     @Override
-    public List<ProductDto> getAllProducts() {
-        List<Product> all = productRepository.findAll();
-        return all.stream().map(p ->
+    public ProductResponse getAllProducts(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir,
+            String keyword,
+            String category
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+//        Specification<Product> spec=Specification.where((Specification<Product>) null);
+//        Specification<Product> spec = Specification.where((Specification<Product>) null);
+//        Specification<Product> spec = Specification.where(null);
+        Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+
+        if (keyword != null && !keyword.isBlank()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("productName")), "%" + keyword.toLowerCase() + "%"));
+        }
+        if (category != null && !category.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like((root.get("category").get("categoryName")), category));
+        }
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+        List<Product> content = productPage.getContent();
+        List<ProductDto> list = content.stream().map(p ->
                 ProductDto.builder()
                         .productId(p.getId().toString())
                         .productName(p.getProductName())
@@ -38,10 +78,22 @@ public class ProductServiceImpl implements ProductService {
                         .price(p.getPrice())
                         .specialPrice(p.getSpecialPrice())
                         .quantity(p.getQuantity())
-
-
+                        .image(p.getImage())
                         .build()
         ).toList();
+
+        return ProductResponse.builder()
+                .pageNumber(productPage.getNumber())
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .first(productPage.isFirst())
+                .last(productPage.isLast())
+                .empty(productPage.isEmpty())
+                .numberOfElements(productPage.getNumberOfElements())
+                .content(list)
+                .build();
+
 
     }
 
@@ -62,6 +114,8 @@ public class ProductServiceImpl implements ProductService {
 
 
         Product product = Product.builder()
+                .image(productRequest.getImage())
+
                 .productName(productRequest.getProductName())
                 .description(productRequest.getDescription())
                 .price(productRequest.getPrice())

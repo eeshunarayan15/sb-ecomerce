@@ -24,7 +24,7 @@ public class Product extends BaseModel {
     private Integer quantity;
     private Double price;
     private double specialPrice;
-
+    private String image;
    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

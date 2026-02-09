@@ -29,6 +29,8 @@
 
         @PositiveOrZero(message = "Special price cannot be negative")
         private Double specialPrice;
+        @NotNull(message = "image is required")
+        private String image;
 
 
     }

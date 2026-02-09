@@ -10,6 +10,7 @@ import com.ecommerce.sbecom.service.AuthService;
 import com.ecommerce.sbecom.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductController {
     private final ProductService productService;
 
@@ -33,12 +35,13 @@ public class ProductController {
 
 
         ProductDto data = ProductDto.builder()
-
+                .productId(product.getId().toString())
                 .productName(product.getProductName())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .description(product.getDescription())
                 .specialPrice(product.getSpecialPrice())
+                .image(product.getImage())
                 .build();
 
 
@@ -52,13 +55,23 @@ public class ProductController {
     }
 
     @GetMapping("/public/product")
-    public ResponseEntity<ProductResponse> getAllProducts() {
-        List<ProductDto> allProducts = productService.getAllProducts();
-        ProductResponse res = ProductResponse.builder()
-                .content(allProducts)
+    public ResponseEntity<ProductResponse> getAllProducts(
+            @RequestParam(required = false)String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc")  String sortDir
+    ) {
+        log.info(
+                "GET /public/product called with page={}, size={}, sortBy={}, sortDir={}",
+                page, size, sortBy, sortDir
+        );
 
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(res);
+        System.out.println("page = " + page + " size = " + size + " sortBy = " + sortBy + " sortDir = " + sortDir+" category= "+category);
+        ProductResponse response = productService.getAllProducts(page, size, sortBy, sortDir,keyword,category);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
 
     }
 
