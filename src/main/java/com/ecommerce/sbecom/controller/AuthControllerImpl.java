@@ -51,15 +51,15 @@ public class AuthControllerImpl implements AuthController {
 
     @PostMapping("/signin")
     @Override
-    public ResponseEntity<ApiResponse<Object>> signin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> signin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         LoginResponse res = authService.login(loginRequest, response);
-        ApiResponse<Object> apiResponse = ApiResponse.builder()
-                .success(true)
-                .data(res)
-                .message("User registered successfully")
-                .timestamp(LocalDateTime.now().toString())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+//        ApiResponse<Object> apiResponse = ApiResponse.builder()
+//                .success(true)
+//                .data(res)
+//                .message("User registered successfully")
+//                .timestamp(LocalDateTime.now().toString())
+//                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(res);
 
 
     }
@@ -111,6 +111,7 @@ public class AuthControllerImpl implements AuthController {
 
         // 5. BROWSER ACTION: Browser ko command dena ki 'refresh-token' cookie delete kar de
         cookieService.clearRefreshCookie(response);
+        cookieService.clearAccessCookie(response);
 
         // 6. SECURITY: Browser cache clear karne ke headers (taaki back button dabane par data na dikhe)
         cookieService.addNoStoreHeaders(response);
