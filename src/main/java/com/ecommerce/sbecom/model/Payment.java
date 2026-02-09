@@ -17,7 +17,7 @@ import java.util.UUID;
 @Builder
 @Table(name = "payments")
 public class Payment extends BaseModel{
-
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
 

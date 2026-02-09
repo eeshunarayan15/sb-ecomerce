@@ -19,6 +19,8 @@ public class Order extends BaseModel {
     @OneToMany(mappedBy = "order", orphanRemoval = true, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<OrderItem> orderItemList = new ArrayList<>();
     private String email;
+    private  String userId;
+    private String phone;
     private LocalDateTime orderDateTime;
     private double totalAmount;
     @Enumerated(EnumType.STRING)

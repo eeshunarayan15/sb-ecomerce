@@ -1,5 +1,6 @@
 package com.ecommerce.sbecom.dto;
 
+import com.ecommerce.sbecom.model.PaymentMethod;
 import com.ecommerce.sbecom.model.PaymentStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -16,10 +17,11 @@ public class PaymentDto {
     @NotNull(message = "Payment ID cannot be null")
     private UUID id;
 
-    @NotBlank(message = "Payment method cannot be blank")
-    @Size(min = 2, max = 50, message = "Payment method must be between 2 and 50 characters")
-    @Pattern(regexp = "^[A-Za-z0-9_\\s-]+$", message = "Payment method can only contain letters, numbers, spaces, hyphens and underscores")
-    private String paymentMethod;
+//    @NotBlank(message = "Payment method cannot be blank")
+//    @Size(min = 2, max = 50, message = "Payment method must be between 2 and 50 characters")
+//    @Pattern(regexp = "^[A-Za-z0-9_\\s-]+$", message = "Payment method can only contain letters, numbers, spaces, hyphens and underscores")
+//    private String paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @NotNull(message = "Amount cannot be null")
     @DecimalMin(value = "0.01", message = "Amount must be at least 0.01")

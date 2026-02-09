@@ -32,7 +32,8 @@ public class CartItem extends BaseModel {
 
     private Double sellingPrice; // Actual price (₹800)
 
-    private Double discount; // Discount amount per item (₹200)
+
+    private Double discount=0.0;
 
     private Double discountPercentage; // 20% OFF, 30% OFF
 
