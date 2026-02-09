@@ -27,19 +27,29 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
+//@Component
+//@RequiredArgsConstructor
 @Slf4j
 public class JwtsAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
-
+    public JwtsAuthenticationFilter(
+            JwtService jwtService,
+           UserRepository userRepository) {
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         log.info("Filter called for: {}", request.getRequestURI());
+        // CRITICAL: Skip if already authenticated (prevents duplicate calls)
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
 
         // Try cookie FIRST
@@ -69,6 +79,63 @@ public class JwtsAuthenticationFilter extends OncePerRequestFilter {
 // If no token found, skip authentication
         if (token == null) {
             log.debug("No JWT token found in cookie or header");
+            log.info("Access token missing. Trying refresh fallback...");
+            String refreshToken = null;
+
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("refresh-token".equals(cookie.getName())) {
+                        refreshToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+            if (refreshToken != null) {
+                try {
+                    if (jwtService.isRefreshToken(refreshToken)) {
+
+                        UUID userId = jwtService.getUserIdFromToken(refreshToken);
+
+                        User user = userRepository.findByIdWithRoles(userId)
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+                        if (!user.isEnabled()) {
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+
+                        // 🔥 create new access token
+                        String newAccess = jwtService.generateToken(user);
+
+                        Cookie newAccessCookie = new Cookie("access-token", newAccess);
+                        newAccessCookie.setHttpOnly(true);
+                        newAccessCookie.setPath("/");
+                        response.addCookie(newAccessCookie);
+
+                        // 🔥 VERY IMPORTANT → set authentication
+                        List<GrantedAuthority> authorities = user.getRoles() != null
+                                ? user.getRoles().stream()
+                                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                                .collect(Collectors.toList())
+                                : Collections.emptyList();
+
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(user, null, authorities);
+
+                        authentication.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request)
+                        );
+
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        log.info("User authenticated via refresh fallback: {}", user.getEmail());
+                    }
+
+                } catch (Exception e) {
+                    log.warn("Refresh fallback failed: {}", e.getMessage());
+                }
+            }
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -168,15 +235,28 @@ public class JwtsAuthenticationFilter extends OncePerRequestFilter {
         // Always continue the filter chain
         filterChain.doFilter(request, response);
     }
+//
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+//        // Skip filter for public endpoints (optional optimization)
+//        String path = request.getRequestURI();
+//        return path.startsWith("/api/v1/auth/signin") ||
+//                path.startsWith("/api/v1/auth/signup") ||
+//                path.startsWith("/api/v1/auth/register")||
+//                path.startsWith("/api/v1/auth/refreshtoken")
+//                ;
+//    }
+@Override
+protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    String path = request.getRequestURI();
+    log.info(">>> shouldNotFilter checking path: '{}'", path);
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        // Skip filter for public endpoints (optional optimization)
-        String path = request.getRequestURI();
-        return path.startsWith("/api/v1/auth/signin") ||
-                path.startsWith("/api/v1/auth/signup") ||
-                path.startsWith("/api/v1/auth/register")||
-                path.startsWith("/api/v1/auth/refreshtoken")
-                ;
-    }
+    boolean skip = path.startsWith("/api/v1/auth/signin") ||
+            path.startsWith("/api/v1/auth/signup") ||
+            path.startsWith("/api/v1/auth/register") ||
+            path.startsWith("/api/v1/auth/refreshtoken");
+
+    log.info(">>> shouldNotFilter result: {} for path: '{}'", skip, path);
+    return skip;
+}
 }

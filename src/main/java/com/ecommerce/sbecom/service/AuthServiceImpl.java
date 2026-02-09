@@ -1,8 +1,6 @@
 package com.ecommerce.sbecom.service;
-import com.ecommerce.sbecom.dto.LoginRequest;
-import com.ecommerce.sbecom.dto.LoginResponse;
-import com.ecommerce.sbecom.dto.RefreshTokenRequest;
-import com.ecommerce.sbecom.dto.UserDto;
+
+import com.ecommerce.sbecom.dto.*;
 import com.ecommerce.sbecom.exception.UserAlreadyExistsException;
 import com.ecommerce.sbecom.model.Provider;
 import com.ecommerce.sbecom.model.RefreshToken;
@@ -41,7 +39,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final CookieService cookieService;
-@Transactional
+
+    @Transactional
     @Override
     public LoginResponse register(LoginRequest loginRequest) {
         // logic
@@ -70,21 +69,20 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtService.generateToken(savUser);
         String email = savUser.getEmail();
 
+
+        UserSummary userSummary = UserSummary.builder()
+                .email(email)
+                .firstName(savUser.getFirstName())
+                .lastName(savUser.getLastName())
+                .profileImageUrl(savUser.getImageUrl())
+                .build();
         return LoginResponse.builder()
-//                .userDto(modelMapper.map(savUser, UserDto.class))
-                .userDto(UserDto.builder()
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .email(user.getEmail())
-                        .enabled(user.isEnabled())
-                        .provider(user.getProvider())
-
-
-                        .build())
+                .userSummary(userSummary)
                 .build();
     }
 
     @Override
+
     public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
 
         try {
@@ -133,15 +131,24 @@ public class AuthServiceImpl implements AuthService {
             cookieService.attachRefreshCookie(response, refreshTokenString, cookieService.getRefreshTtlSeconds());
             cookieService.attachAccessCookie(response, accessToken, cookieService.getAccessTtlSeconds());
             cookieService.addNoStoreHeaders(response);
+
+            UserSummary userSummary = UserSummary.builder()
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .profileImageUrl(user.getImageUrl())
+                    .build();
+
+
             return LoginResponse
                     .builder()
-
-                    .expiresIn(refreshTokenEntity.getExpiredAt())
-                    .userDto(UserDto.builder()
-                            .firstName(user.getFirstName())
-                            .lastName(user.getLastName())
-                            .email(user.getEmail())
-                            .build())
+                    .userSummary(userSummary)
+//                    .expiresIn(refreshTokenEntity.getExpiredAt())
+//                    .userDto(UserDto.builder()
+//                            .firstName(user.getFirstName())
+//                            .lastName(user.getLastName())
+//                            .email(user.getEmail())
+//                            .build())
                     .build();
 
         } catch (Exception e) {
@@ -206,19 +213,19 @@ public class AuthServiceImpl implements AuthService {
         cookieService.addNoStoreHeaders(response);
         log.info("L - cookies attached");
         LoginResponse loginResponse = LoginResponse.builder()
-                
-                .expiresIn(newRefreshTokenEntity.getExpiredAt())
-                .userDto(UserDto.builder()
-                        .id(user.getId().toString())
-                        .email(user.getEmail())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .phone(user.getPhone())
-                        .createdAt(user.getCreatedAt())
-                        .enabled(user.isEnabled())
-                        .provider(user.getProvider())
-                
-                .build())
+
+//                .expiresIn(newRefreshTokenEntity.getExpiredAt())
+//                .userDto(UserDto.builder()
+//                        .id(user.getId().toString())
+//                        .email(user.getEmail())
+//                        .firstName(user.getFirstName())
+//                        .lastName(user.getLastName())
+//                        .phone(user.getPhone())
+//                        .createdAt(user.getCreatedAt())
+//                        .enabled(user.isEnabled())
+//                        .provider(user.getProvider())
+//
+//                        .build())
                 .build();
         log.info("Refresh token response: {}", loginResponse);
         log.info("M - refresh finished");
@@ -226,11 +233,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Optional<String> readRefreshTokenFromRequest(HttpServletRequest httpServletRequest,
-            RefreshTokenRequest refreshTokenRequest) {
+                                                         RefreshTokenRequest refreshTokenRequest) {
 
         if (httpServletRequest.getCookies() != null) {
             Optional<String> fromCookie = Arrays.stream(
-                    httpServletRequest.getCookies())
+                            httpServletRequest.getCookies())
                     .filter(c -> cookieService.getRefreshTokenCookieName().equals(c.getName()))
                     .map(Cookie::getValue)
                     .filter(v -> !v.isBlank())

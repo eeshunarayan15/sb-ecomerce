@@ -1,4 +1,6 @@
 package com.ecommerce.sbecom.securityconfig;
+import com.ecommerce.sbecom.repository.UserRepository;
+import com.ecommerce.sbecom.security.JwtService;
 import com.ecommerce.sbecom.security.JwtsAuthenticationFilter;
 import com.ecommerce.sbecom.security.OAuthFailureHandler;
 import com.ecommerce.sbecom.security.OAuthSucessHandler;
@@ -15,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -33,9 +36,16 @@ import java.util.Map;
 @EnableWebSecurity
 @Slf4j
 public class SecurityConfig {
-    private final JwtsAuthenticationFilter jwtsAuthenticationFilter;
+//    private final JwtsAuthenticationFilter jwtsAuthenticationFilter;
     private final OAuthSucessHandler oAuthSucessHandler;
     private final OAuthFailureHandler oAuthFailureHandler;
+    // These are delivered automatically by Spring
+
+
+    // NEW: Ask Spring to deliver these too!
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,6 +53,8 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                .httpBasic(AbstractHttpConfigurer::disable)  // ← Stops BasicAuthenticationFilter
+                .formLogin(AbstractHttpConfigurer::disable)  // ← Stops UsernamePasswordAuthenticationFilter
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
 
@@ -50,6 +62,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/auth/signin").permitAll()
                                 .requestMatchers("/api/v1/auth/signup").permitAll()
                                 .requestMatchers("/api/v1/auth/refreshtoken").permitAll()
+                                .requestMatchers("/api/v1/public/**").permitAll()
+                                .requestMatchers("/api/v1/public/category").permitAll()
                                 .requestMatchers("/", "/error").permitAll()
                                 .requestMatchers("/api/v1/auth/logout").permitAll() // ADD THIS LINE
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
@@ -83,7 +97,7 @@ public class SecurityConfig {
                     // Spring ka default ObjectMapper use karein (Performance ke liye)
                     new ObjectMapper().writeValue(response.getWriter(), errorMap);
 
-                })).addFilterBefore(jwtsAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                })).addFilterBefore(jwtsAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -108,5 +122,10 @@ public class SecurityConfig {
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+    // NEW - You create it manually as a Bean
+    @Bean
+    public JwtsAuthenticationFilter jwtsAuthenticationFilter() {
+        return new JwtsAuthenticationFilter(jwtService, userRepository);
     }
 }

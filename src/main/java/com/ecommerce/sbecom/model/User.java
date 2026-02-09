@@ -22,8 +22,10 @@ import java.util.*;
 @ToString
 @Builder
 @Table(
-        name = "users"
-
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email", unique = true)
+        }
 )
 public class User extends BaseModel implements UserDetails {
 
@@ -63,12 +65,7 @@ public class User extends BaseModel implements UserDetails {
 
     private LocalDateTime lastLogin;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
