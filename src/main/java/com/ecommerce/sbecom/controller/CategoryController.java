@@ -21,7 +21,7 @@ import java.util.UUID;
 public class CategoryController {
     private final CategoryService categoryService;
 
-    @GetMapping("/category")
+    @GetMapping("/public/category")
     public ResponseEntity<ApiResponse<Object>> getAllCategory(
             @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
