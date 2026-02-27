@@ -8,8 +8,7 @@ import com.ecommerce.sbecom.exception.APIException;
 import com.ecommerce.sbecom.exception.ResourceNotFoundException;
 import com.ecommerce.sbecom.model.Category;
 import com.ecommerce.sbecom.model.Product;
-import com.ecommerce.sbecom.repository.CategoryRepository;
-import com.ecommerce.sbecom.repository.ProductRepository;
+import com.ecommerce.sbecom.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +27,9 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderRepository orderRepository;
+    private final CartItemRepository cartItemRepository;
+    private final OrderItemRepository orderItemRepository;
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
             "productName",
             "price",
@@ -98,8 +100,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product getProductById(UUID id) {
-        return null;
+    @Transactional(readOnly = true)
+    public ProductDto getProductById(UUID id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        return ProductDto.builder()
+                .productId(product.getId().toString())
+                .productName(product.getProductName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .specialPrice(product.getSpecialPrice())
+                .quantity(product.getQuantity())
+                .image(product.getImage())
+                .categoryDto(CategoryDto.builder()
+                        .id(product.getCategory().getId())
+                        .categoryName(product.getCategory().getCategoryName())
+                        .build())
+                .build();
     }
 
     @Override
@@ -214,5 +232,25 @@ public class ProductServiceImpl implements ProductService {
                         .build())
                 .build();
 
+    }
+    @Transactional
+    public void deleteProduct(UUID productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        // ❌ Block if has order history
+        boolean hasOrders = orderItemRepository.existsByProductId(productId);
+        if (hasOrders) {
+            throw new APIException("Cannot delete product that has existing orders!");
+        }
+
+        // ✅ Auto-remove from carts first
+        boolean inCart = cartItemRepository.existsByProductId(productId);
+        if (inCart) {
+            cartItemRepository.deleteByProductId(productId);
+        }
+
+        // ✅ Now safe to delete
+        productRepository.delete(product);
     }
 }

@@ -2,7 +2,7 @@ package com.ecommerce.sbecom.model;
 
 public enum PaymentStatus {
     PENDING,          // UPI/Net Banking initiated
-    SUCCESSFUL,       // Payment successful
+    COMPLETED,       // Payment successful
     FAILED,           // Payment failed
     COD_PENDING,      // Cash on Delivery selected
     COD_COLLECTED,    // Cash collected

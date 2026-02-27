@@ -16,5 +16,7 @@ public enum PaymentMethod {
 
     // International (For future)
     PAYPAL,
-    INTERNATIONAL_CARD;
+    INTERNATIONAL_CARD,
+    AMAZON_PAY,
+    STRIPE,
 }

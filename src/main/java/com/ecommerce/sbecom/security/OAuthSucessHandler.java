@@ -54,7 +54,7 @@ public class OAuthSucessHandler implements AuthenticationSuccessHandler {
         User user = userRepository.findByEmail(email)
                 .map(existingUser -> {
                     // Agar user pehle se hai, toh uski details update kar dein (Optional but good)
-                    existingUser.setFirstName(name);
+                    existingUser.setFullName(name);
                     existingUser.setImageUrl(picture);
                     existingUser.setProvider(Provider.GOOGLE); // Provider sync ensure karein
                     return userRepository.save(existingUser);
@@ -64,7 +64,7 @@ public class OAuthSucessHandler implements AuthenticationSuccessHandler {
                     log.info("New OAuth User detected. Registering: {}", email);
                     User newUser = new User();
                     newUser.setEmail(email);
-                    newUser.setFirstName(name);
+                    newUser.setFullName(name);
                     newUser.setImageUrl(picture);
                     newUser.setProvider(Provider.GOOGLE);
                     newUser.setEnabled(true);

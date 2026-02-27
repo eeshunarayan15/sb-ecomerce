@@ -79,4 +79,25 @@ public ResponseEntity<ApiResponse<Object>> getAddressById(@PathVariable UUID add
 
 
     }
+    @PutMapping("/{addressId}")
+    public ResponseEntity<ApiResponse<Object>> updateAddress(
+            @PathVariable UUID addressId,
+            @RequestBody AddressDto addressDto,
+            Authentication authentication
+    ){
+        User user = (User) authentication.getPrincipal(); // ✅ cast
+        assert user != null;
+        UUID userId = user.getId();                        // ✅ USER ID
+
+        System.out.println(userId);
+        AddressDto updatedAddress = addressService.updateAddress(userId, addressId, addressDto);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .data(updatedAddress)
+                        .success(true)
+                        .message("Address updated successfully")
+                        .timestamp(LocalDateTime.now().toString())
+                        .build()
+        );
+    }
 }

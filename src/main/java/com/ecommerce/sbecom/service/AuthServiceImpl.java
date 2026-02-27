@@ -1,12 +1,15 @@
 package com.ecommerce.sbecom.service;
 
+import com.ecommerce.sbecom.config.AppConstants;
 import com.ecommerce.sbecom.dto.*;
 import com.ecommerce.sbecom.exception.UserAlreadyExistsException;
 import com.ecommerce.sbecom.model.Provider;
 import com.ecommerce.sbecom.model.RefreshToken;
 
+import com.ecommerce.sbecom.model.Role;
 import com.ecommerce.sbecom.model.User;
 import com.ecommerce.sbecom.repository.RefreshTokenRepository;
+import com.ecommerce.sbecom.repository.RoleRepository;
 import com.ecommerce.sbecom.repository.UserRepository;
 import com.ecommerce.sbecom.security.CookieService;
 import com.ecommerce.sbecom.security.JwtService;
@@ -39,10 +42,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final CookieService cookieService;
+    private final RoleRepository roleRepository;
 
     @Transactional
     @Override
-    public LoginResponse register(LoginRequest loginRequest) {
+    public LoginResponse register(SignUpRequest loginRequest) {
         // logic
         // verify email
         log.info("Registering user with email: {}", loginRequest.getEmail());
@@ -51,14 +55,17 @@ public class AuthServiceImpl implements AuthService {
         }
         loginRequest.setPassword(passwordEncoder.encode(loginRequest.getPassword()));
 //        User user = modelMapper.map(loginRequest, User.class);
-
+        Role role = roleRepository.findByName("ROLE_" + AppConstants.USER_ROLE)
+                .orElseThrow(() -> new IllegalStateException("Role not configured in database"));
 
         User user = User.builder()
                 .email(loginRequest.getEmail())
                 .password(loginRequest.getPassword())
                 .provider(Provider.LOCAL)
                 .enabled(true)
+                .fullName(loginRequest.getFullName())
                 .build();
+        user.getRoles().add(role);
         // Set<Role> role = new HashSet<>();
         // role.add(new Role("USER"));
         // user.setRoles(role);
@@ -72,8 +79,7 @@ public class AuthServiceImpl implements AuthService {
 
         UserSummary userSummary = UserSummary.builder()
                 .email(email)
-                .firstName(savUser.getFirstName())
-                .lastName(savUser.getLastName())
+                .fullName(savUser.getFullName())
                 .profileImageUrl(savUser.getImageUrl())
                 .build();
         return LoginResponse.builder()
@@ -134,8 +140,7 @@ public class AuthServiceImpl implements AuthService {
 
             UserSummary userSummary = UserSummary.builder()
                     .email(user.getEmail())
-                    .firstName(user.getFirstName())
-                    .lastName(user.getLastName())
+                    .fullName(user.getFullName())
                     .profileImageUrl(user.getImageUrl())
                     .build();
 

@@ -2,6 +2,7 @@ package com.ecommerce.sbecom.controller;
 
 
 import com.ecommerce.sbecom.dto.*;
+import com.ecommerce.sbecom.model.Role;
 import com.ecommerce.sbecom.model.User;
 import com.ecommerce.sbecom.repository.RefreshTokenRepository;
 import com.ecommerce.sbecom.repository.UserRepository;
@@ -35,9 +36,9 @@ public class AuthControllerImpl implements AuthController {
 //    private  final ModelMapper modelMapper;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Object>> register(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<Object>> register(@Valid @RequestBody SignUpRequest signUpRequest) {
 
-        LoginResponse register = authService.register(loginRequest);
+        LoginResponse register = authService.register(signUpRequest);
 
 
         ApiResponse<Object> apiResponse = ApiResponse.builder()
@@ -134,12 +135,14 @@ public class AuthControllerImpl implements AuthController {
                             .timestamp(LocalDateTime.now().toString())
                             .build());
         }
-
+//.roles(user.getRoles().stream()
+//                .map(role -> role.getName())  // ← arrow function style
+//                .toList())
         UserDto userDto = UserDto.builder()
                 .id(user.getId().toString())
                 .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+                .fullName(user.getFullName())
+                .roles(user.getRoles().stream().map(Role::getName).toList())
                 .phone(user.getPhone())
                 .createdAt(user.getCreatedAt())
                 .enabled(user.isEnabled())

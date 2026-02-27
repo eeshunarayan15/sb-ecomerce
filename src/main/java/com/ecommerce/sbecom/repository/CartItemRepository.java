@@ -13,6 +13,9 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
    CartItem findCartItemByProductIdAndCartId(UUID cartId, UUID productId);
     @Query("SELECT ci FROM CartItem ci WHERE ci.cart.id = ?1 AND ci.product.id = ?2")
     Optional<CartItem> findOptionalByCartIdAndProductId(UUID cartId, UUID productId);
+    boolean existsByProductId(UUID productId); // ← add this!
+
+    void deleteByProductId(UUID productId);    // ← add this!
 
 
 

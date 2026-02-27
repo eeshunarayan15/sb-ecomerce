@@ -9,9 +9,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, UUID> {
+
+    Optional<Address> findByIdAndUserId(UUID id, UUID userId);
     List<Address> findAllByUserId(UUID userId);
     @Modifying
     @Transactional

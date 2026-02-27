@@ -64,6 +64,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/auth/refreshtoken").permitAll()
                                 .requestMatchers("/api/v1/public/**").permitAll()
                                 .requestMatchers("/api/v1/public/category").permitAll()
+                                .requestMatchers("/api/v1/addresses").authenticated()
+
                                 .requestMatchers("/", "/error").permitAll()
                                 .requestMatchers("/api/v1/auth/logout").permitAll() // ADD THIS LINE
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()

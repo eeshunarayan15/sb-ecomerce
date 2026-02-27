@@ -45,11 +45,11 @@ public class User extends BaseModel implements UserDetails {
     private String email;
     //
 //    @Size(max = 50)
-    private String firstName;
+    private String fullName;
 
-    //    @Size(max = 50)
-    private String lastName;
+
     private String phone;
+    private String stripeCustomerId;
 
     //    @Pattern(regexp = "^[0-9]{10,15}$", message = "Invalid phone number")
 // Remove the old @OneToOne with address and replace with:

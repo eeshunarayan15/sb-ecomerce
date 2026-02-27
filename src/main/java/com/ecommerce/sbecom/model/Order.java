@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class Order extends BaseModel {
     @OneToMany(mappedBy = "order", orphanRemoval = true, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<OrderItem> orderItemList = new ArrayList<>();
     private String email;
-    private  String userId;
+    private UUID userId;
     private String phone;
     private LocalDateTime orderDateTime;
     private double totalAmount;

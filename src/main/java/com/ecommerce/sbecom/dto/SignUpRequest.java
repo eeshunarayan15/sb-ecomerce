@@ -9,8 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginRequest {
-
+public class SignUpRequest {
+    @NotBlank(message = "Name is required")
+    private String fullName;
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;

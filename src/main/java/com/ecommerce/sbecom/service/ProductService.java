@@ -14,7 +14,7 @@ public interface ProductService {
 
 
 
-    Product getProductById(UUID id);
+    ProductDto getProductById(UUID id);
 
     Product getProductByName(String name);
 
@@ -25,4 +25,6 @@ public interface ProductService {
     List<ProductDto> getProductByKeyWord(String keyword);
 
     ProductDto updateProduct(UUID productId, ProductRequest productRequest);
+
+    void deleteProduct(UUID productId);
 }

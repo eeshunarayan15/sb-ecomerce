@@ -7,9 +7,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSummary {private String email;
-    private String firstName;
-    private String lastName;
+public class UserSummary {
+
+    private String email;
+    private String fullName;
     private String profileImageUrl;
 
 }

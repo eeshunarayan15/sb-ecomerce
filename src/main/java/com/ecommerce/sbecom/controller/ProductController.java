@@ -75,7 +75,15 @@ public class ProductController {
 
     }
 
-    public void getProductById(@PathVariable UUID id) {
+    @GetMapping("/public/products/{productId}")
+    public ResponseEntity<ApiResponse<Object>> getProductById(@PathVariable UUID productId) {
+        ProductDto product = productService.getProductById(productId); // implement in service
+        return ResponseEntity.ok(ApiResponse.builder()
+                .data(product)
+                .message("Product found")
+                .success(true)
+                .timestamp(LocalDateTime.now().toString())
+                .build());
     }
 
     public void getProductByName(String name) {
@@ -133,12 +141,25 @@ public class ProductController {
                 .build());
     }
     @PutMapping("/admin/products/{productId}")
-    public void updateProduct(
-          @PathVariable  UUID productId,
-          @RequestBody  ProductRequest productRequest,
-          Authentication authentication
-    ){
-
-        productService.updateProduct(productId,productRequest);
+    public ResponseEntity<ApiResponse<Object>> updateProduct(
+            @PathVariable UUID productId,
+            @RequestBody ProductRequest productRequest
+    ) {
+        ProductDto updated = productService.updateProduct(productId, productRequest);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Product updated successfully")
+                .success(true)
+                .data(updated)
+                .timestamp(LocalDateTime.now().toString())
+                .build());
+    }
+    @DeleteMapping("/admin/products/{productId}")
+    public ResponseEntity<ApiResponse<Object>> deleteProduct(@PathVariable UUID productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Product deleted successfully")
+                .success(true)
+                .timestamp(LocalDateTime.now().toString())
+                .build());
     }
 }

@@ -5,6 +5,7 @@ import com.ecommerce.sbecom.model.Provider;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 @Getter
 @Setter
@@ -17,8 +18,9 @@ public class UserDto {
     private String username;
     private String email;
 
-    private String firstName;
-    private String lastName;
+    private String fullName;
+
+
     private String phone;
 
     private Provider provider;
@@ -30,5 +32,5 @@ public class UserDto {
     private AddressDto address;
 
     // Role names only (clean & safe)
-    private Set<String> roles;
+    private List<String> roles;
 }

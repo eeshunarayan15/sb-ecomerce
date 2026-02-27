@@ -1,11 +1,18 @@
 package com.ecommerce.sbecom.service;
 
 import com.ecommerce.sbecom.config.PricingService;
+import com.ecommerce.sbecom.controller.OrderStatusUpdateRequest;
 import com.ecommerce.sbecom.dto.*;
 import com.ecommerce.sbecom.exception.APIException;
+import com.ecommerce.sbecom.exception.ResourceNotFoundException;
 import com.ecommerce.sbecom.model.*;
+import com.ecommerce.sbecom.payload.OrderResponse;
 import com.ecommerce.sbecom.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
         // 4. Create Order
         Order order = Order.builder()
                 .email(email)
-                .userId(userId.toString())
+                .userId(userId)
                 .address(address)
                 .orderDateTime(LocalDateTime.now())
                 .status(dto.getPaymentMethod() == PaymentMethod.COD ? OrderStatus.CONFIRMED : OrderStatus.PENDING_PAYMENT)
@@ -191,8 +198,140 @@ public class OrderServiceImpl implements OrderService {
         return orderDto;
     }
 
+    @Transactional
+    @Override
+    public void updateOrder(UUID orderId, OrderRequestDto dto) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new APIException("Order not found"));
 
-    public void getAllOrders(UUID userId){
-        List<Order> orderByUserId = orderRepository.getOrderByUserId(userId);
+        // Update order status
+        order.setStatus(OrderStatus.CONFIRMED);
+
+        // Update payment details
+        Payment payment = order.getPayment();
+        payment.setPgPaymentId(dto.getPgPaymentId());
+        payment.setPgStatus(dto.getPgStatus());
+        payment.setPgName(dto.getPgName());
+        payment.setPgResponseMessage(dto.getPgResponseMessage());
+        payment.setPaymentStatus(PaymentStatus.COMPLETED);
+
+        orderRepository.save(order);
     }
+
+    @Transactional
+    @Override
+    public List<OrderDto> getAllOrder(UUID userId) {
+        List<Order> orders = orderRepository.getOrderByUserId(userId);
+
+        return orders.stream().map(order -> {
+
+            // Map Order Items
+            List<OrderItemDto> orderItemDtos = order.getOrderItemList().stream()
+                    .map(item -> OrderItemDto.builder()
+                            .orderItemId(item.getId())
+                            .quantity(item.getQuantity())
+                            .discount(item.getDiscount())
+                            .orderedProductPrice(item.getOrderedProductPrice())
+                            .productDto(ProductDto.builder()
+                                    .productId(item.getProduct().getId().toString())
+                                    .productName(item.getProduct().getProductName())
+                                    .price(item.getProduct().getPrice())
+                                    .build())
+                            .build()
+                    ).toList();
+
+            // Map Payment
+            PaymentDto paymentDto = PaymentDto.builder()
+                    .paymentMethod(order.getPayment().getPaymentMethod())
+                    .paymentStatus(order.getPayment().getPaymentStatus())
+                    .amount(order.getPayment().getAmount())
+                    .pgPaymentId(order.getPayment().getPgPaymentId())
+                    .pgName(order.getPayment().getPgName())
+                    .pgStatus(order.getPayment().getPgStatus())
+                    .build();
+
+            // Map Order
+            return OrderDto.builder()
+                    .orderId(order.getId())
+                    .email(order.getEmail())
+                    .orderDate(order.getOrderDateTime())
+                    .totalAmount(order.getTotalAmount())
+                    .OrderStatus(order.getStatus().name())
+                    .addressId(order.getAddress().getId())
+                    .orderItems(orderItemDtos)
+                    .paymentDto(paymentDto)
+                    .build();
+
+        }).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getAllOrderAdmin(
+            UUID id,
+            int page,
+            int size,
+            String sortBy,
+            String sortOrder
+    ) {
+
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sortByAndOrder);
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+        List<Order> listOrder = orderPage.getContent();
+
+        List<OrderDto> list = listOrder.stream().map(order -> OrderDto.builder()
+                .orderId(order.getId())
+                .email(order.getEmail())
+                .orderDate(order.getOrderDateTime())
+                .totalAmount(order.getTotalAmount())
+                .OrderStatus(order.getStatus().name())
+                .addressId(order.getAddress().getId())
+                .orderItems(order.getOrderItemList().stream().map(item -> OrderItemDto.builder()
+                        .orderItemId(item.getId())
+                        .quantity(item.getQuantity())
+                        .discount(item.getDiscount())
+                        .orderedProductPrice(item.getOrderedProductPrice())
+                        .productDto(ProductDto.builder()
+                                .productId(item.getProduct().getId().toString())
+                                .productName(item.getProduct().getProductName())
+                                .price(item.getProduct().getPrice())
+                                .build())
+                        .build()
+                ).toList())
+                .paymentDto(PaymentDto.builder()
+                        .paymentMethod(order.getPayment().getPaymentMethod())
+                        .paymentStatus(order.getPayment().getPaymentStatus())
+                        .amount(order.getPayment().getAmount())
+                        .pgPaymentId(order.getPayment().getPgPaymentId())
+                        .pgName(order.getPayment().getPgName())
+                        .pgStatus(order.getPayment().getPgStatus())
+                        .build())
+                .orderId(order.getId())
+                .build()
+
+        ).toList();
+
+
+        return OrderResponse.builder()
+                .orderDto(list)
+                .page(orderPage.getNumber())
+                .size(orderPage.getSize())
+                .totalPages(orderPage.getTotalPages())
+                .totalElements(orderPage.getTotalElements())
+                .lastPage(orderPage.isLast())
+                .build();
+
+    }
+
+    @Transactional
+    @Override
+    public void updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        order.setStatus(request.getOrderStatus());
+    }
+
+
 }

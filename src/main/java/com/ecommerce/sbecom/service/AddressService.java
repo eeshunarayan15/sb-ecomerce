@@ -13,4 +13,6 @@ public interface AddressService {
     AddressDto getAddressById(UUID addressId);
 
     void deleteAddressByUserIdAndAddressId(UUID userId, UUID addressId);
+
+    AddressDto updateAddress(UUID userId, UUID addressId, AddressDto addressDto);
 }

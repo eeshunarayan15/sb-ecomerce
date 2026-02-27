@@ -111,7 +111,6 @@ public class CartServiceImpl implements CartService {
         List<ProductDto> list = cart.getCartItemList().stream().map(item -> {
             Double livePrice = pricingService.calculateLivePrice(item.getProduct());
 
-
             return ProductDto.builder()
                     .productId(item.getProduct().getId().toString())
                     .productName(item.getProduct().getProductName())
@@ -159,6 +158,7 @@ public class CartServiceImpl implements CartService {
         }
         // 5️⃣ If quantity = 0 → remove item
         if (newQty == 0) {
+            cart.getCartItemList().remove(cartItem);  // ✅ remove from memory first
             cartItemRepository.delete(cartItem);
         } else {
             cartItem.setQuantity(newQty);

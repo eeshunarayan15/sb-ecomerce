@@ -1,24 +1,18 @@
 spring:
-  application:
-    name: auth
-
   datasource:
     hikari:
-      maximum-pool-size: 3
-      minimum-idle: 1
-      idle-timeout: 30000
-      connection-timeout: 20000
+      maximum-pool-size: 5        # Render free tier is limited, don't over-pool
+      minimum-idle: 2
+      idle-timeout: 10000
+      connection-timeout: 3000
       max-lifetime: 600000
 
   jpa:
     open-in-view: false
     show-sql: false
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
-        highlight_sql: true
+        format_sql: false
         generate_statistics: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
@@ -34,25 +28,22 @@ spring:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope: read:user,user:email
-            redirect-uri: http://localhost:8089/login/oauth2/code/github
+            redirect-uri: ${APP_BASE_URL}/login/oauth2/code/github  # ← env var!
 
 server:
-  port: ${SERVER_PORT}
+  port: ${PORT:8080}   # Render injects PORT automatically
 
 security:
   jwt:
     secret-key: ${JWT_SECRET}
-    issuer: ${JWT_ISSUER:issuer}
-
-    access-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:3000}
-    refresh-ttl-seconds: ${JWT_REFRESH_TTL_SECONDS:6000}
-
+    issuer: ${JWT_ISSUER}
+    access-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:900}
+    refresh-ttl-seconds: ${JWT_REFRESH_TTL_SECONDS:86400}
     access-token-cookie-name: ${JWT_ACCESS_TOKEN_COOKIE_NAME:access-token}
     refresh-token-cookie-name: ${JWT_REFRESH_TOKEN_COOKIE_NAME:refresh-token}
-
-    cookie-secure: ${JWT_COOKIE_SECURE:false}
-    cookie-http-only: ${JWT_COOKIE_HTTP_ONLY:true}
-    cookie-path: ${JWT_COOKIE_PATH:/}
+    cookie-secure: true        # ← MUST be true in prod (Render uses HTTPS)
+    cookie-http-only: true
+    cookie-path: /
     cookie-domain: ${JWT_COOKIE_DOMAIN:}
     cookie-same-site: ${JWT_COOKIE_SAME_SITE:Lax}
     cookie-max-age: ${JWT_COOKIE_MAX_AGE:3600}
@@ -60,26 +51,13 @@ security:
 app:
   cors:
     front-end:
-      url: ${FRONTEND_URL:http://localhost:3000}
+      url: ${FRONTEND_URL}    # no default in prod — must be explicitly set
 
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        type:
-          descriptor:
-            sql:
-              BasicBinder: TRACE
-        engine:
-          internal:
-            StatisticalLoggingSessionEventListener: DEBUG
-        stat: DEBUG
-
-
-
-
-#Stripe Secret key
 stripe:
   secret:
     key: ${STRIPE_SECRET_KEY}
+
+logging:
+  level:
+    org.hibernate.SQL: WARN   # no SQL spam in prod logs
+    root: INFO

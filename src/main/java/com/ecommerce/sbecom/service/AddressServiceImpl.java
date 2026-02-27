@@ -80,6 +80,34 @@ public class AddressServiceImpl implements AddressService {
             throw new ResourceNotFoundException("Address not found or doesn't belong to user");
         }
     }
+    @Transactional
+    @Override
+    public AddressDto updateAddress(UUID userId, UUID addressId, AddressDto addressDto) {
+//// 1. Verify user exists
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+//// 2. Fetch the address by ID
+//        Address address = addressRepository.findById(addressId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+//// 3. Verify the address belongs to the user (security check)
+//        if (!address.getUser().getId().equals(userId)) {
+//            throw new ResourceNotFoundException("Address not found or doesn't belong to user");
+//        }
+        // 1. Fetch and verify in one step
+        Address address = addressRepository.findByIdAndUserId(addressId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found or doesn't belong to user"));
+        // 4. Update the address fields with new data
+        address.setAddressLine1(addressDto.getAddressLine1());
+        address.setAddressLine2(addressDto.getAddressLine2());
+        address.setCity(addressDto.getCity());
+        address.setState(addressDto.getState());
+        address.setPostalCode(addressDto.getPostalCode());
+        address.setCountry(addressDto.getCountry());
+        Address updatedAddress = addressRepository.save(address);
+
+// 6. Return as DTO
+        return convertToDto(updatedAddress);
+    }
 
     private AddressDto convertToDto(Address address) {
         return AddressDto.builder()

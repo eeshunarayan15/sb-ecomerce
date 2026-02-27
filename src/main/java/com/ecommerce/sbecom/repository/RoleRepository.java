@@ -1,12 +1,12 @@
 package com.ecommerce.sbecom.repository;
 
-import com.ecommerce.sbecom.model.OrderItem;
+import com.ecommerce.sbecom.model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 @Repository
-public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
-    boolean existsByProductId(UUID productId);
-
+public interface RoleRepository extends JpaRepository<Role, UUID> {
+    Optional<Role> findByName(String name);
 }

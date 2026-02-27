@@ -6,11 +6,10 @@ plugins {
 
 group = 'com.ecommerce'
 version = '0.0.1-SNAPSHOT'
-description = 'spring boot ecommerce project'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
+		languageVersion = JavaLanguageVersion.of(25)  // Keep Java 25 — fully supported + images exist
 	}
 }
 
@@ -27,37 +26,25 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	compileOnly 'org.projectlombok:lombok'
-//	runtimeOnly 'com.mysql:mysql-connector-j'
-	// PostgreSQL driver add karo
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// Change this line in build.gradle
-	implementation 'me.paulschwarz:spring-dotenv:5.1.0'
-	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+	implementation 'org.springframework.boot:spring-boot-starter-web'           // ← fixed
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-//https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api/0.13.0
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
-	implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-
-//https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl/0.13.0
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
-
-//https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson/0.13.0
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
-
-
-// Yeh core + Swagger UI dono provide karta hai
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
-
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	runtimeOnly 'org.postgresql:postgresql'
+
+	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+	implementation 'com.stripe:stripe-java:31.3.0'
+
+	// Removed: spring-dotenv + dotenv-java (useless in Docker/Render)
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'     // ← fixed (single correct test starter)
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('compileJava') {
@@ -66,4 +53,13 @@ tasks.named('compileJava') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Docker-friendly JAR name (always app.jar)
+tasks.named('bootJar') {
+	archiveFileName = 'app.jar'
+}
+
+tasks.named('jar') {
+	enabled = false
 }
