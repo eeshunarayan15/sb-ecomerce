@@ -6,10 +6,11 @@ plugins {
 
 group = 'com.ecommerce'
 version = '0.0.1-SNAPSHOT'
+description = 'spring boot ecommerce project'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)  // Keep Java 25 — fully supported + images exist
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
@@ -26,25 +27,27 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'           // ← fixed
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
-
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	// PostgreSQL driver add karo
+//	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
-
-	runtimeOnly 'org.postgresql:postgresql'
-
-	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
-	implementation 'com.stripe:stripe-java:31.3.0'
-
-	// Removed: spring-dotenv + dotenv-java (useless in Docker/Render)
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'     // ← fixed (single correct test starter)
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// Security ❌ MISSING
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+// JWT ❌ MISSING
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+// Stripe ❌ MISSING
+	implementation 'com.stripe:stripe-java:25.1.0'
 }
 
 tasks.named('compileJava') {
@@ -54,12 +57,6 @@ tasks.named('compileJava') {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-// Docker-friendly JAR name (always app.jar)
 tasks.named('bootJar') {
 	archiveFileName = 'app.jar'
-}
-
-tasks.named('jar') {
-	enabled = false
 }
